@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-17
+
 ### Added
 
 - Apprise as a Gladys notification channel: every message Gladys sends to a
@@ -31,3 +33,6 @@ the notes of the version's GitHub Release.
 - Optional reverse proxy authentication (basic or a custom header) and
   self-signed certificates.
 - Texts and documentation in English, French, German and Spanish.
+
+[Unreleased]: https://github.com/guim31/gladys-apprise/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-apprise/releases/tag/v1.0.0
