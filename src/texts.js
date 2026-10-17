@@ -52,6 +52,12 @@ export const ERROR_TEXT = {
     de: 'kein Ziel: Gib einen Konfigurationsschlüssel oder Apprise-URLs ein',
     es: 'ningún destino: indique una clave de configuración o URL de Apprise',
   },
+  [ERROR_KINDS.INVALID_HEADER]: {
+    en: 'invalid character in the proxy user, password or header',
+    fr: "caractère invalide dans l'utilisateur, le mot de passe ou l'en-tête du proxy",
+    de: 'ungültiges Zeichen in Benutzer, Passwort oder Header des Proxys',
+    es: 'carácter no válido en el usuario, la contraseña o la cabecera del proxy',
+  },
   [ERROR_KINDS.UNREACHABLE]: {
     en: 'the Apprise API does not answer',
     fr: "l'API Apprise ne répond pas",

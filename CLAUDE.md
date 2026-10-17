@@ -226,8 +226,9 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
 - **Pièces jointes** : JSON `attachment: [{ base64, filename, mimetype }]` accepté. Serveur verrouillé
   → 400 `Bad Attachment` : on renvoie sans l'image avec une ligne qui le dit (et on ne l'essaie plus
   quand `/status` le dit). Corps vide refusé même avec une image : `📷` en corps.
-- **`GET /json/urls/{key}` renvoie les URL avec leurs secrets** (même avec `?privacy=1` en 2.0.1) :
-  seulement pour le rapport du test, on n'en garde que le nombre et les tags ; 204 = clé inconnue.
+- **`GET /json/urls/{key}` renvoie les URL avec leurs mots de passe** ; avec `?privacy=1`, ils sont
+  masqués (vérifié en 2.0.1 sur une URL `json://user:pass@…`). Seulement pour le rapport du test,
+  avec `?privacy=1`, et on n'en garde que le nombre et les tags ; 204 = clé inconnue.
 - **Délai** : un service lent fait attendre `/notify` (le plugin `json://` abandonne vers 4 s). Gladys
   n'attend que 5 s : la requête abandonne à 4 s, et un délai **après envoi complet de la requête**
   (`error.accepted`, posé par `http.js` sur l'événement `finish`) compte comme envoyé — Apprise

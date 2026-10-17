@@ -54,8 +54,8 @@ let each person fill in their tags in **My account**. Details in
   `format: "markdown"`, `attachment` (base64).
 - `GET /status` every 5 minutes (re-checked after 30 s): online / offline, and
   whether the server refuses attachments (`attach_lock`).
-- `GET /json/urls/{key}` for the test report only: the answer holds the service
-  URLs with their secrets; only their count and tags are kept.
+- `GET /json/urls/{key}?privacy=1` for the test report only (Apprise masks the
+  passwords); only the number of services and their tags are kept.
 - State under `/data/apprise-state.json`: server state, today's counters, last
   scene notifications. No URL, no password, no address.
 

@@ -34,15 +34,14 @@ export const DEFAULT_CONFIG = {
 const trimmed = (value) => (typeof value === 'string' ? value.trim() : '');
 
 /**
- * Apprise URLs typed in a form: one per line, or separated by spaces, commas
- * or semicolons (no Apprise URL holds a raw space or comma… except inside
- * its query, which Apprise itself also splits on).
+ * Apprise URLs typed in a form: one per line, or separated by spaces or
+ * commas, as Apprise itself splits them (a ";" may be part of a password).
  * @param {unknown} value
  * @returns {string[]}
  */
 export function parseUrls(value) {
   return trimmed(value)
-    .split(/[\s,;]+/)
+    .split(/[\s,]+/)
     .filter((url) => url !== '');
 }
 
@@ -74,7 +73,8 @@ export function normalizeConfig(raw = {}) {
   const config = raw ?? {};
   return {
     server_url: trimmed(config.server_url),
-    config_key: trimmed(config.config_key),
+    // Emptied by the user: the default key, as the form shows it.
+    config_key: trimmed(config.config_key) || DEFAULT_CONFIG.config_key,
     default_tags: normalizeTags(config.default_tags),
     urls: parseUrls(config.urls),
     notification_type: parseType(config.notification_type) ?? DEFAULT_CONFIG.notification_type,

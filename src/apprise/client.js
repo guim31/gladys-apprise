@@ -5,8 +5,8 @@
 //   POST /notify/            stateless: { urls, body, title?, type?, format?, attachment? }
 //   POST /notify/{key}       stored configuration: { body, tag?, … }
 //   GET  /json/urls/{key}    the services of a stored configuration and their tags
-//                            (the test action only: the answer holds the URLs, with
-//                            their secrets, and is never kept nor logged)
+//                            (the test action only; with ?privacy=1 the passwords
+//                            are masked, and the URLs are never kept nor logged)
 //
 // Answers verified on apprise-api 2.0.1 (test/fixtures/apprise/): 200 sent,
 // 424 "One or more notifications could not be sent" (a service failed, or no
@@ -26,6 +26,7 @@ export const ERROR_KINDS = {
   INVALID_URL: 'invalid_url',
   INVALID_KEY: 'invalid_key',
   NO_TARGET: 'no_target',
+  INVALID_HEADER: 'invalid_header',
   UNREACHABLE: 'unreachable',
   TLS: 'tls',
   REDIRECT: 'redirect',
@@ -209,8 +210,10 @@ export class AppriseClient {
 
   url(path) {
     const url = new URL(this.base.href);
+    const [pathname, query] = path.split('?');
     // A URL always keeps a pathname of at least "/": never send "//notify/".
-    url.pathname = `${this.base.pathname.replace(/\/+$/, '')}${path}`;
+    url.pathname = `${this.base.pathname.replace(/\/+$/, '')}${pathname}`;
+    url.search = query ? `?${query}` : '';
     return url.href;
   }
 
@@ -226,6 +229,16 @@ export class AppriseClient {
       });
     } catch (err) {
       const code = err?.code;
+      if (code === 'ERR_INVALID_CHAR' || code === 'ERR_INVALID_HTTP_TOKEN') {
+        // Node refuses the header before sending anything: a typo in the form.
+        throw new AppriseError(
+          ERROR_KINDS.INVALID_HEADER,
+          'Invalid character in a proxy credential',
+          {
+            cause: err,
+          },
+        );
+      }
       if (TLS_CODES.has(code) || /certificate/i.test(err?.message ?? '')) {
         throw new AppriseError(ERROR_KINDS.TLS, `TLS certificate refused (${code ?? 'TLS'})`, {
           cause: err,
@@ -340,7 +353,8 @@ export class AppriseClient {
    * @returns {Promise<{ services: Array<{ service: string, tags: string[], enabled: boolean }>, tags: string[] }>}
    */
   async describeConfig(key) {
-    const data = await this.call('GET', `/json/urls/${checkKey(key)}`);
+    // privacy=1: apprise-api masks the passwords and tokens of the URLs.
+    const data = await this.call('GET', `/json/urls/${checkKey(key)}?privacy=1`);
     if (data === null) {
       throw new AppriseError(ERROR_KINDS.NO_CONFIG, 'No stored configuration under this key');
     }
@@ -369,6 +383,7 @@ export function failureReason(kind) {
       ERROR_KINDS.INVALID_URL,
       ERROR_KINDS.INVALID_KEY,
       ERROR_KINDS.NO_TARGET,
+      ERROR_KINDS.INVALID_HEADER,
       ERROR_KINDS.UNAUTHORIZED,
       ERROR_KINDS.NO_CONFIG,
       ERROR_KINDS.NO_MATCH,

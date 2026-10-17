@@ -114,6 +114,9 @@ test('a server refusing attachments gets the text and a line that says so', asyn
   });
   assert.equal(apprise.calls.filter((call) => call.method === 'POST').length, 2);
   assert.match(apprise.delivered[0].body, /ce serveur Apprise refuse les pièces jointes/);
+  // Remembered until the next check: the next image is not tried again.
+  await world.fake.sendMessage({ tags: 'ops' }, { text: 'Encore', file: IMAGE });
+  assert.equal(apprise.calls.filter((call) => call.method === 'POST').length, 3);
 });
 
 test('tags matching no service fail the message, the trigger fires once per 15 minutes', async (t) => {

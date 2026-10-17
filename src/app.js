@@ -326,21 +326,30 @@ export function registerHandlers(gladys, options = {}) {
    * request but did not answer in time (it goes on sending).
    */
   async function deliver(sender, target, payload, { timeoutMs, language }) {
-    let body = attachLock ? withoutAttachment(payload, language) : payload;
-    try {
-      await sender.send(target, body, { timeoutMs });
-    } catch (err) {
-      if (err?.accepted) {
-        logger.debug(`Apprise did not confirm within ${timeoutMs} ms: ${err.message}`);
-        return { confirmed: false };
+    // One deadline for both tries: a Gladys message is acked within 5 s.
+    const deadline = Date.now() + timeoutMs;
+    const send = async (body) => {
+      try {
+        await sender.send(target, body, { timeoutMs: Math.max(1, deadline - Date.now()) });
+        return true;
+      } catch (err) {
+        if (err?.accepted) {
+          logger.debug(`Apprise did not confirm within ${timeoutMs} ms: ${err.message}`);
+          return false;
+        }
+        throw err;
       }
+    };
+    const body = attachLock ? withoutAttachment(payload, language) : payload;
+    try {
+      return { confirmed: await send(body) };
+    } catch (err) {
       if (err?.kind !== ERROR_KINDS.BAD_ATTACHMENT || !body.attachment) {
         throw err;
       }
-      body = withoutAttachment(body, language);
-      await sender.send(target, body, { timeoutMs });
+      attachLock = true; // until the next check says otherwise
+      return { confirmed: await send(withoutAttachment(body, language)) };
     }
-    return { confirmed: true };
   }
 
   /** What the shared destination holds, for the test report (null: cannot say). */

@@ -12,7 +12,7 @@ import {
 
 test('the configuration gets its defaults and its types', () => {
   const config = normalizeConfig({});
-  assert.deepEqual(config, { ...DEFAULT_CONFIG, config_key: '', urls: [] });
+  assert.deepEqual(config, { ...DEFAULT_CONFIG, urls: [] });
   assert.deepEqual(normalizeConfig(null).urls, []);
   const typed = normalizeConfig({
     server_url: ' http://192.0.2.10:8000 ',
@@ -35,7 +35,12 @@ test('the configuration gets its defaults and its types', () => {
 });
 
 test('URLs, tags and types as typed in a form', () => {
-  assert.deepEqual(parseUrls('a://1, b://2;c://3  d://4'), ['a://1', 'b://2', 'c://3', 'd://4']);
+  assert.deepEqual(parseUrls('a://1, b://2\nc://p;w@3  d://4'), [
+    'a://1',
+    'b://2',
+    'c://p;w@3',
+    'd://4',
+  ]);
   assert.deepEqual(parseUrls(null), []);
   assert.equal(normalizeTags(' a , ,b  c '), 'a, b c');
   assert.equal(normalizeTags(undefined), '');

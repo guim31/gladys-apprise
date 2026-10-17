@@ -162,6 +162,7 @@ test('every failure has a kind, and never shows a URL nor a credential', async (
   };
   assert.equal(await network('ECONNREFUSED'), ERROR_KINDS.UNREACHABLE);
   assert.equal(await network('DEPTH_ZERO_SELF_SIGNED_CERT'), ERROR_KINDS.TLS);
+  assert.equal(await network('ERR_INVALID_CHAR'), ERROR_KINDS.INVALID_HEADER);
   for (const [status, kind] of [
     [301, ERROR_KINDS.REDIRECT],
     [401, ERROR_KINDS.UNAUTHORIZED],
@@ -200,6 +201,7 @@ test('describeConfig lists services and tags, never the URLs', async () => {
   assert.deepEqual(described.tags, ['family', 'ops', 'alice', 'bob']);
   assert.equal(described.services.length, 3);
   assert.ok(!JSON.stringify(described).includes('198.51.100'));
+  assert.match(apprise.calls[0].url, /\/json\/urls\/apprise\?privacy=1$/, 'passwords masked');
   const missing = await errorOf(clientFor(createFakeApprise()).describeConfig('nope'));
   assert.equal(missing.kind, ERROR_KINDS.NO_CONFIG);
 });

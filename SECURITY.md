@@ -47,8 +47,8 @@ What the integration handles:
 - **Network**: outgoing HTTP(S) requests to the Apprise API address typed in
   the configuration only. Certificates are verified unless "Accept a
   self-signed certificate" is ticked. Nothing listens for incoming connections.
-  The answer of `GET /json/urls/{key}` (test action) contains the service URLs:
-  only their count and tags are kept.
+  The test action reads `GET /json/urls/{key}?privacy=1` (passwords masked by
+  Apprise) and keeps only the number of services and their tags.
 
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
