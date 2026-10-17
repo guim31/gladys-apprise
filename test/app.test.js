@@ -68,7 +68,8 @@ test('a Gladys message goes to the tags of the user, as Markdown', async (t) => 
   const post = world.apprise.calls.find((call) => call.method === 'POST');
   assert.equal(post.path, '/notify/apprise');
   assert.equal(post.json.tag, 'alice');
-  assert.equal(post.timeoutMs, MESSAGE_TIMEOUT_MS);
+  // One deadline per message: what is left of it, never more.
+  assert.ok(post.timeoutMs <= MESSAGE_TIMEOUT_MS && post.timeoutMs > MESSAGE_TIMEOUT_MS - 500);
 });
 
 test('a user with Apprise URLs of their own gets a stateless notification', async (t) => {
