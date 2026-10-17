@@ -1,0 +1,6 @@
+{
+  "status": 400,
+  "body": {
+    "error": "There was no valid URLs provided to notify"
+  }
+}

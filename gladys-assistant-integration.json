@@ -1,177 +1,764 @@
 {
   "manifest_version": 1,
-  "type": "device",
-  "name": "Demo Devices Template",
+  "type": "communication",
+  "name": "Apprise",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Gladys messages and scene notifications to 100+ services through your Apprise API.",
+    "fr": "Les messages de Gladys et des scènes vers plus de 100 services via votre API Apprise.",
+    "de": "Gladys-Nachrichten und Szenen-Benachrichtigungen an über 100 Dienste über deine Apprise-API.",
+    "es": "Mensajes de Gladys y de escenas hacia más de 100 servicios a través de su API Apprise."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
+  "docker_image": "ghcr.io/guim31/gladys-apprise:1.0.0",
   "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-apprise/main/cover.png",
+  "categories": ["notifications"],
+  "transports": ["local"],
+  "messaging": {
+    "receive": false
+  },
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Connect your Apprise API",
+        "fr": "Connecter votre API Apprise",
+        "de": "Deine Apprise-API verbinden",
+        "es": "Conectar su API Apprise"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Apprise sends to Discord, Telegram, Matrix, e-mail, SMS and 100+ other services. Run the Apprise API (caronc/apprise) and either store a configuration in it (its web page, a key such as apprise) with a tag per person, or paste Apprise URLs below.",
+        "fr": "Apprise envoie vers Discord, Telegram, Matrix, l'e-mail, les SMS et plus de 100 autres services. Faites tourner l'API Apprise (caronc/apprise), puis enregistrez-y une configuration (sa page web, une clé comme apprise) avec un tag par personne, ou collez des URL Apprise ci-dessous.",
+        "de": "Apprise sendet an Discord, Telegram, Matrix, E-Mail, SMS und über 100 weitere Dienste. Starte die Apprise-API (caronc/apprise) und speichere darin eine Konfiguration (ihre Webseite, ein Schlüssel wie apprise) mit einem Tag pro Person, oder füge unten Apprise-URLs ein.",
+        "es": "Apprise envía a Discord, Telegram, Matrix, correo electrónico, SMS y más de 100 servicios. Ejecute la API Apprise (caronc/apprise) y guarde en ella una configuración (su página web, una clave como apprise) con una etiqueta por persona, o pegue URL de Apprise a continuación."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://github.com/caronc/apprise-api",
+          "label": {
+            "en": "Apprise API",
+            "fr": "API Apprise",
+            "de": "Apprise-API",
+            "es": "API Apprise"
+          }
+        },
+        {
+          "url": "https://appriseit.com/services/",
+          "label": {
+            "en": "Apprise services and their URLs",
+            "fr": "Services Apprise et leurs URL",
+            "de": "Apprise-Dienste und ihre URLs",
+            "es": "Servicios de Apprise y sus URL"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "key": "server_url",
+      "type": "string",
+      "label": {
+        "en": "Apprise API address",
+        "fr": "Adresse de l'API Apprise",
+        "de": "Adresse der Apprise-API",
+        "es": "Dirección de la API Apprise"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
+      "description": {
+        "en": "The address you open the Apprise API with, port included.",
+        "fr": "L'adresse par laquelle vous ouvrez l'API Apprise, port compris.",
+        "de": "Die Adresse, unter der du die Apprise-API öffnest, mit Port.",
+        "es": "La dirección con la que abre la API Apprise, puerto incluido."
+      },
+      "placeholder": {
+        "en": "e.g. http://192.168.1.10:8000",
+        "fr": "ex. http://192.168.1.10:8000",
+        "de": "z. B. http://192.168.1.10:8000",
+        "es": "p. ej. http://192.168.1.10:8000"
+      },
+      "required": true
     },
     {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+      "key": "config_key",
+      "type": "string",
+      "label": {
+        "en": "Key of the stored configuration",
+        "fr": "Clé de la configuration enregistrée",
+        "de": "Schlüssel der gespeicherten Konfiguration",
+        "es": "Clave de la configuración guardada"
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
-    },
-    {
-      "key": "unit",
-      "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "description": {
+        "en": "The configuration of the Apprise API that holds your services. Ignored when Apprise URLs are given below.",
+        "fr": "La configuration de l'API Apprise qui contient vos services. Ignorée si des URL Apprise sont données plus bas.",
+        "de": "Die Konfiguration der Apprise-API mit deinen Diensten. Wird ignoriert, wenn unten Apprise-URLs angegeben sind.",
+        "es": "La configuración de la API Apprise que contiene sus servicios. Se ignora si se indican URL de Apprise más abajo."
+      },
+      "placeholder": {
+        "en": "e.g. apprise",
+        "fr": "ex. apprise",
+        "de": "z. B. apprise",
+        "es": "p. ej. apprise"
+      },
       "required": false,
-      "default": "celsius",
+      "default": "apprise"
+    },
+    {
+      "key": "default_tags",
+      "type": "string",
+      "label": {
+        "en": "Shared tags",
+        "fr": "Tags partagés",
+        "de": "Gemeinsame Tags",
+        "es": "Etiquetas compartidas"
+      },
+      "description": {
+        "en": "Services reached by the scene action and the test. \"a, b\": a or b; \"a b\": a and b; all: every service. Empty: the services without a tag.",
+        "fr": "Services joints par l'action de scène et le test. « a, b » : a ou b ; « a b » : a et b ; all : tous. Vide : les services sans tag.",
+        "de": "Dienste, die die Szenenaktion und der Test erreichen. „a, b“: a oder b; „a b“: a und b; all: alle. Leer: die Dienste ohne Tag.",
+        "es": "Servicios a los que llegan la acción de escena y la prueba. «a, b»: a o b; «a b»: a y b; all: todos. Vacío: los servicios sin etiqueta."
+      },
+      "placeholder": {
+        "en": "e.g. family",
+        "fr": "ex. famille",
+        "de": "z. B. familie",
+        "es": "p. ej. familia"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "urls",
+      "type": "secret",
+      "label": {
+        "en": "Shared Apprise URLs (instead of a configuration)",
+        "fr": "URL Apprise partagées (au lieu d'une configuration)",
+        "de": "Gemeinsame Apprise-URLs (statt einer Konfiguration)",
+        "es": "URL de Apprise compartidas (en lugar de una configuración)"
+      },
+      "description": {
+        "en": "One per line or separated by commas, e.g. tgram://token/chat_id. They hold passwords: stored masked, never logged.",
+        "fr": "Une par ligne ou séparées par des virgules, ex. tgram://jeton/chat_id. Elles contiennent des mots de passe : masquées, jamais journalisées.",
+        "de": "Eine pro Zeile oder durch Kommas getrennt, z. B. tgram://token/chat_id. Diese enthalten Passwörter: maskiert gespeichert, nie protokolliert.",
+        "es": "Una por línea o separadas por comas, p. ej. tgram://token/chat_id. Contienen contraseñas: se guardan ocultas y nunca se registran."
+      },
+      "placeholder": {
+        "en": "Empty: the stored configuration",
+        "fr": "Vide : la configuration enregistrée",
+        "de": "Leer: die gespeicherte Konfiguration",
+        "es": "Vacío: la configuración guardada"
+      },
+      "required": false
+    },
+    {
+      "key": "notification_type",
+      "type": "select",
+      "label": {
+        "en": "Default notification type",
+        "fr": "Type de notification par défaut",
+        "de": "Standard-Benachrichtigungstyp",
+        "es": "Tipo de notificación predeterminado"
+      },
+      "description": {
+        "en": "Apprise gives it to the services that know it (colour, icon).",
+        "fr": "Apprise le transmet aux services qui le connaissent (couleur, icône).",
+        "de": "Apprise gibt ihn an die Dienste weiter, die ihn kennen (Farbe, Symbol).",
+        "es": "Apprise lo transmite a los servicios que lo conocen (color, icono)."
+      },
+      "required": false,
+      "default": "info",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "info",
+          "label": {
+            "en": "Information",
+            "fr": "Information",
+            "de": "Information",
+            "es": "Información"
+          }
+        },
+        {
+          "value": "success",
+          "label": {
+            "en": "Success",
+            "fr": "Succès",
+            "de": "Erfolg",
+            "es": "Éxito"
+          }
+        },
+        {
+          "value": "warning",
+          "label": {
+            "en": "Warning",
+            "fr": "Avertissement",
+            "de": "Warnung",
+            "es": "Aviso"
+          }
+        },
+        {
+          "value": "failure",
+          "label": {
+            "en": "Failure",
+            "fr": "Échec",
+            "de": "Fehler",
+            "es": "Fallo"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "markdown",
+      "type": "boolean",
+      "label": {
+        "en": "Format messages as Markdown",
+        "fr": "Mettre en forme les messages en Markdown",
+        "de": "Nachrichten als Markdown formatieren",
+        "es": "Dar formato Markdown a los mensajes"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "Gladys writes bold text, lists and links in Markdown: Apprise converts them for each service.",
+        "fr": "Gladys écrit gras, listes et liens en Markdown : Apprise les convertit pour chaque service.",
+        "de": "Gladys schreibt Fettdruck, Listen und Links in Markdown: Apprise wandelt sie für jeden Dienst um.",
+        "es": "Gladys escribe negritas, listas y enlaces en Markdown: Apprise los convierte para cada servicio."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": true
+    },
+    {
+      "key": "proxy",
+      "type": "section",
+      "label": {
+        "en": "Behind a reverse proxy (optional)",
+        "fr": "Derrière un reverse proxy (facultatif)",
+        "de": "Hinter einem Reverse-Proxy (optional)",
+        "es": "Detrás de un proxy inverso (opcional)"
+      },
+      "description": {
+        "en": "The Apprise API has no login of its own. If you protect it with a reverse proxy, give its credentials here.",
+        "fr": "L'API Apprise n'a pas d'identification propre. Si vous la protégez par un reverse proxy, donnez ses identifiants ici.",
+        "de": "Die Apprise-API hat keine eigene Anmeldung. Wenn du sie mit einem Reverse-Proxy schützt, gib hier seine Zugangsdaten an.",
+        "es": "La API Apprise no tiene inicio de sesión propio. Si la protege con un proxy inverso, indique aquí sus credenciales."
+      }
+    },
+    {
+      "key": "auth_user",
+      "type": "string",
+      "label": {
+        "en": "User (basic authentication)",
+        "fr": "Utilisateur (authentification basique)",
+        "de": "Benutzer (Basic-Authentifizierung)",
+        "es": "Usuario (autenticación básica)"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "auth_password",
+      "type": "secret",
+      "label": {
+        "en": "Password (basic authentication)",
+        "fr": "Mot de passe (authentification basique)",
+        "de": "Passwort (Basic-Authentifizierung)",
+        "es": "Contraseña (autenticación básica)"
+      },
+      "required": false
+    },
+    {
+      "key": "auth_header",
+      "type": "secret",
+      "label": {
+        "en": "Extra header",
+        "fr": "En-tête supplémentaire",
+        "de": "Zusätzlicher Header",
+        "es": "Cabecera adicional"
+      },
+      "description": {
+        "en": "Sent with every request, as Name: value.",
+        "fr": "Envoyé avec chaque requête, sous la forme Nom: valeur.",
+        "de": "Wird mit jeder Anfrage gesendet, als Name: Wert.",
+        "es": "Se envía con cada solicitud, con la forma Nombre: valor."
+      },
+      "placeholder": {
+        "en": "e.g. X-Api-Key: …",
+        "fr": "ex. X-Api-Key: …",
+        "de": "z. B. X-Api-Key: …",
+        "es": "p. ej. X-Api-Key: …"
+      },
+      "required": false
+    },
+    {
+      "key": "allow_self_signed",
+      "type": "boolean",
+      "label": {
+        "en": "Accept a self-signed certificate",
+        "fr": "Accepter un certificat auto-signé",
+        "de": "Selbstsigniertes Zertifikat akzeptieren",
+        "es": "Aceptar un certificado autofirmado"
+      },
+      "description": {
+        "en": "Only for an https:// address whose certificate you created yourself.",
+        "fr": "Seulement pour une adresse en https:// dont vous avez créé le certificat vous-même.",
+        "de": "Nur für eine https://-Adresse, deren Zertifikat du selbst erstellt hast.",
+        "es": "Solo para una dirección https:// cuyo certificado haya creado usted mismo."
+      },
+      "required": false,
+      "default": false
+    },
+    {
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language of the integration texts",
+        "fr": "Langue des textes de l'intégration",
+        "de": "Sprache der Texte der Integration",
+        "es": "Idioma de los textos de la integración"
+      },
+      "description": {
+        "en": "Used for the notes added to the messages and the errors of the scene action.",
+        "fr": "Pour les mentions ajoutées aux messages et les erreurs de l'action de scène.",
+        "de": "Für die Hinweise in den Nachrichten und die Fehler der Szenenaktion.",
+        "es": "Para las notas añadidas a los mensajes y los errores de la acción de escena."
+      },
+      "required": false,
+      "default": "fr",
+      "options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
+      ]
+    }
+  ],
+  "contact_schema": [
+    {
+      "key": "account",
+      "type": "section",
+      "label": {
+        "en": "Your Apprise notifications",
+        "fr": "Vos notifications Apprise",
+        "de": "Deine Apprise-Benachrichtigungen",
+        "es": "Sus notificaciones Apprise"
+      },
+      "description": {
+        "en": "To receive the messages Gladys sends you, enter your tag in the stored Apprise configuration (e.g. alice), or your own Apprise URLs. Leave everything empty to receive nothing.",
+        "fr": "Pour recevoir les messages que Gladys vous envoie, saisissez votre tag dans la configuration Apprise enregistrée (ex. alice), ou vos propres URL Apprise. Laissez tout vide pour ne rien recevoir.",
+        "de": "Um die Nachrichten von Gladys zu erhalten, gib dein Tag in der gespeicherten Apprise-Konfiguration ein (z. B. alice) oder deine eigenen Apprise-URLs. Lass alles leer, um nichts zu erhalten.",
+        "es": "Para recibir los mensajes que Gladys le envía, indique su etiqueta en la configuración Apprise guardada (p. ej. alice) o sus propias URL de Apprise. Deje todo vacío para no recibir nada."
+      }
+    },
+    {
+      "key": "tags",
+      "type": "string",
+      "label": {
+        "en": "Your tags",
+        "fr": "Vos tags",
+        "de": "Deine Tags",
+        "es": "Sus etiquetas"
+      },
+      "placeholder": {
+        "en": "e.g. alice",
+        "fr": "ex. alice",
+        "de": "z. B. alice",
+        "es": "p. ej. alice"
+      },
+      "required": false
+    },
+    {
+      "key": "urls",
+      "type": "secret",
+      "label": {
+        "en": "Your Apprise URLs (instead of tags)",
+        "fr": "Vos URL Apprise (au lieu des tags)",
+        "de": "Deine Apprise-URLs (statt Tags)",
+        "es": "Sus URL de Apprise (en lugar de etiquetas)"
+      },
+      "placeholder": {
+        "en": "e.g. tgram://token/chat_id",
+        "fr": "ex. tgram://jeton/chat_id",
+        "de": "z. B. tgram://token/chat_id",
+        "es": "p. ej. tgram://token/chat_id"
+      },
+      "required": false
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
+      "key": "test_connection",
+      "label": {
+        "en": "Send a test notification",
+        "fr": "Envoyer une notification de test",
+        "de": "Testbenachrichtigung senden",
+        "es": "Enviar una notificación de prueba"
+      },
+      "description": {
+        "en": "Checks the Apprise API, then sends a notification to the shared destination.",
+        "fr": "Vérifie l'API Apprise, puis envoie une notification à la destination partagée.",
+        "de": "Prüft die Apprise-API und sendet dann eine Benachrichtigung an das gemeinsame Ziel.",
+        "es": "Comprueba la API Apprise y envía una notificación al destino compartido."
+      },
+      "timeout_seconds": 40
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "server_offline",
+      "label": {
+        "en": "Apprise API offline",
+        "fr": "API Apprise hors ligne",
+        "de": "Apprise-API offline",
+        "es": "API Apprise sin conexión"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "The Apprise API stopped answering (two checks 30 seconds apart).",
+        "fr": "L'API Apprise ne répond plus (deux vérifications à 30 secondes d'écart).",
+        "de": "Die Apprise-API antwortet nicht mehr (zwei Prüfungen im Abstand von 30 Sekunden).",
+        "es": "La API Apprise ha dejado de responder (dos comprobaciones con 30 segundos de diferencia)."
+      },
+      "variables": [
+        {
+          "key": "error",
+          "type": "string",
+          "label": {
+            "en": "Error",
+            "fr": "Erreur",
+            "de": "Fehler",
+            "es": "Error"
+          }
+        }
+      ]
+    },
+    {
+      "key": "server_online",
+      "label": {
+        "en": "Apprise API back online",
+        "fr": "API Apprise de retour",
+        "de": "Apprise-API wieder online",
+        "es": "API Apprise de nuevo en línea"
+      },
+      "description": {
+        "en": "The Apprise API answers again after being offline.",
+        "fr": "L'API Apprise répond de nouveau après avoir été hors ligne.",
+        "de": "Die Apprise-API antwortet wieder, nachdem sie offline war.",
+        "es": "La API Apprise vuelve a responder tras estar sin conexión."
+      }
+    },
+    {
+      "key": "delivery_failed",
+      "label": {
+        "en": "Apprise notification not sent",
+        "fr": "Notification Apprise non envoyée",
+        "de": "Apprise-Benachrichtigung nicht gesendet",
+        "es": "Notificación Apprise no enviada"
+      },
+      "description": {
+        "en": "A message could not be sent. At most once per reason every 15 minutes.",
+        "fr": "Un message n'a pas pu être envoyé. Au plus une fois par raison toutes les 15 minutes.",
+        "de": "Eine Nachricht konnte nicht gesendet werden. Höchstens einmal pro Grund alle 15 Minuten.",
+        "es": "No se ha podido enviar un mensaje. Como máximo una vez por motivo cada 15 minutos."
       },
       "fields": [
         {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "key": "reason",
+          "type": "multi_select",
+          "label": {
+            "en": "Reason",
+            "fr": "Raison",
+            "de": "Grund",
+            "es": "Motivo"
+          },
+          "options": [
+            {
+              "value": "unreachable",
+              "label": {
+                "en": "Apprise unreachable",
+                "fr": "Apprise injoignable",
+                "de": "Apprise nicht erreichbar",
+                "es": "Apprise inaccesible"
+              }
+            },
+            {
+              "value": "configuration",
+              "label": {
+                "en": "Configuration to check",
+                "fr": "Configuration à vérifier",
+                "de": "Konfiguration prüfen",
+                "es": "Revisar la configuración"
+              }
+            },
+            {
+              "value": "service_failed",
+              "label": {
+                "en": "A service failed",
+                "fr": "Un service a échoué",
+                "de": "Ein Dienst ist gescheitert",
+                "es": "Un servicio ha fallado"
+              }
+            },
+            {
+              "value": "rejected",
+              "label": {
+                "en": "Notification refused",
+                "fr": "Notification refusée",
+                "de": "Benachrichtigung abgelehnt",
+                "es": "Notificación rechazada"
+              }
+            }
+          ]
         },
         {
-          "key": "target",
+          "key": "origin",
           "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
+          "label": {
+            "en": "Sent by",
+            "fr": "Envoyé par",
+            "de": "Gesendet von",
+            "es": "Enviado por"
+          },
           "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
+            {
+              "value": "gladys_message",
+              "label": {
+                "en": "A Gladys message",
+                "fr": "Un message de Gladys",
+                "de": "Eine Gladys-Nachricht",
+                "es": "Un mensaje de Gladys"
+              }
+            },
+            {
+              "value": "scene_action",
+              "label": {
+                "en": "The Apprise scene action",
+                "fr": "L'action de scène Apprise",
+                "de": "Die Apprise-Szenenaktion",
+                "es": "La acción de escena Apprise"
+              }
+            }
           ]
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "reason",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "Reason",
+            "fr": "Raison",
+            "de": "Grund",
+            "es": "Motivo"
+          }
+        },
+        {
+          "key": "origin",
+          "type": "string",
+          "label": {
+            "en": "Sent by",
+            "fr": "Envoyé par",
+            "de": "Gesendet von",
+            "es": "Enviado por"
+          }
+        },
+        {
+          "key": "error",
+          "type": "string",
+          "label": {
+            "en": "Error",
+            "fr": "Erreur",
+            "de": "Fehler",
+            "es": "Error"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "send_notification",
+      "label": {
+        "en": "Send an Apprise notification",
+        "fr": "Envoyer une notification Apprise",
+        "de": "Apprise-Benachrichtigung senden",
+        "es": "Enviar una notificación Apprise"
       },
-      "timeout_seconds": 15,
+      "description": {
+        "en": "With a title and a type, to the shared destination or to the chosen tags.",
+        "fr": "Avec titre et type, vers la destination partagée ou les tags choisis.",
+        "de": "Mit Titel und Typ, an das gemeinsame Ziel oder die gewählten Tags.",
+        "es": "Con título y tipo, al destino compartido o a las etiquetas elegidas."
+      },
+      "timeout_seconds": 20,
       "fields": [
         {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
+          "key": "title",
+          "type": "string",
+          "label": {
+            "en": "Title",
+            "fr": "Titre",
+            "de": "Titel",
+            "es": "Título"
+          },
+          "placeholder": {
+            "en": "Empty: no title",
+            "fr": "Vide : sans titre",
+            "de": "Leer: ohne Titel",
+            "es": "Vacío: sin título"
+          }
+        },
+        {
+          "key": "message",
+          "type": "string",
+          "label": {
+            "en": "Message",
+            "fr": "Message",
+            "de": "Nachricht",
+            "es": "Mensaje"
+          },
           "required": true
+        },
+        {
+          "key": "type",
+          "type": "select",
+          "label": {
+            "en": "Type",
+            "fr": "Type",
+            "de": "Typ",
+            "es": "Tipo"
+          },
+          "options": [
+            {
+              "value": "default",
+              "label": {
+                "en": "Default of the integration",
+                "fr": "Par défaut de l'intégration",
+                "de": "Standard der Integration",
+                "es": "Predeterminado de la integración"
+              }
+            },
+            {
+              "value": "info",
+              "label": {
+                "en": "Information",
+                "fr": "Information",
+                "de": "Information",
+                "es": "Información"
+              }
+            },
+            {
+              "value": "success",
+              "label": {
+                "en": "Success",
+                "fr": "Succès",
+                "de": "Erfolg",
+                "es": "Éxito"
+              }
+            },
+            {
+              "value": "warning",
+              "label": {
+                "en": "Warning",
+                "fr": "Avertissement",
+                "de": "Warnung",
+                "es": "Aviso"
+              }
+            },
+            {
+              "value": "failure",
+              "label": {
+                "en": "Failure",
+                "fr": "Échec",
+                "de": "Fehler",
+                "es": "Fallo"
+              }
+            }
+          ]
+        },
+        {
+          "key": "tags",
+          "type": "string",
+          "label": {
+            "en": "Tags",
+            "fr": "Tags",
+            "de": "Tags",
+            "es": "Etiquetas"
+          },
+          "placeholder": {
+            "en": "Empty: the shared tags",
+            "fr": "Vide : les tags partagés",
+            "de": "Leer: die gemeinsamen Tags",
+            "es": "Vacío: las etiquetas compartidas"
+          }
         }
       ],
       "outputs": [
         {
-          "key": "signalled",
+          "key": "delivered",
           "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "label": {
+            "en": "Notification sent",
+            "fr": "Notification envoyée",
+            "de": "Benachrichtigung gesendet",
+            "es": "Notificación enviada"
+          }
+        },
+        {
+          "key": "error",
+          "type": "string",
+          "label": {
+            "en": "Error",
+            "fr": "Erreur",
+            "de": "Fehler",
+            "es": "Error"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "apprise",
+      "label": {
+        "en": "Apprise",
+        "fr": "Apprise",
+        "de": "Apprise",
+        "es": "Apprise"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "API status, notifications sent today and the last scene notifications.",
+        "fr": "État de l'API, notifications du jour et dernières notifications des scènes.",
+        "de": "API-Status, heutige Benachrichtigungen und die letzten Szenen-Benachrichtigungen.",
+        "es": "Estado de la API, notificaciones de hoy y últimas notificaciones de escenas."
+      },
+      "icon": "bell",
+      "action_timeout_seconds": 40
     }
   ]
 }

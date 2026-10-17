@@ -30,6 +30,26 @@ Gladys before reporting a problem.
 
 In scope: the code of this repository and the Docker image it publishes.
 
+What the integration handles:
+
+- **Secrets**: the shared Apprise URLs, the password and the extra header of
+  the reverse proxy (integration configuration), and the Apprise URLs of each
+  user ("My account"). Apprise URLs hold the credentials of the services
+  (bot tokens, passwords). Gladys stores them and hands them to the
+  integration; the integration keeps them in memory only, sends them to the
+  configured Apprise API only, and never logs them nor writes them to disk.
+  Prefer a configuration stored in the Apprise API: Gladys then only knows its
+  key and tags.
+- **`/data`**: `apprise-state.json` holds the last known state of the API
+  (online / offline, a hash of its address), today's delivery counters and the
+  last notifications sent by scenes (title, text, type). No URL, no password,
+  no address, and never the messages Gladys sends to one user.
+- **Network**: outgoing HTTP(S) requests to the Apprise API address typed in
+  the configuration only. Certificates are verified unless "Accept a
+  self-signed certificate" is ticked. Nothing listens for incoming connections.
+  The test action reads `GET /json/urls/{key}?privacy=1` (passwords masked by
+  Apprise) and keeps only the number of services and their tags.
+
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
-and the third-party services and devices the integration talks to.
+and Apprise itself (see the [Apprise API project](https://github.com/caronc/apprise-api)).

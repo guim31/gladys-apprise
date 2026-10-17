@@ -1,61 +1,159 @@
-# Demo Devices Template
+# Apprise
 
-This is the user documentation of the integration. Gladys re-hosts this file
-and shows a permanent **Documentation** link to it in the Configuration screen
-(in the user's language, with English as the fallback) — it is when
-configuring that the user needs it most. Keep the short onboarding hints in
-the `section` blocks of the manifest `config_schema`; put the long
-step-by-step (screenshots, troubleshooting…) here.
+Send the messages of Gladys to Discord, Telegram, Matrix, Slack, ntfy,
+Pushover, e-mail, SMS and more than 100 other services through your own
+[Apprise API](https://github.com/caronc/apprise-api): the messages of your
+scenes, the answers of Gladys and its system messages, plus notifications with
+a title and a type from your scenes. Gladys talks to the Apprise API on your
+local network; Apprise then reaches each service.
 
-## What you get
+> Tested against a real Apprise API 2.0.1 (`caronc/apprise` image), with
+> stored configurations, tags and attachments, but not in a real Gladys
+> installation. If something does not work as described, please say so on the
+> [Gladys forum](https://community.gladysassistant.com) or in the
+> [issues](https://github.com/guim31/gladys-apprise/issues).
 
-Six demo devices show up after installation: a weather station (real data
-from Open-Meteo), a switch, a dimmable light, a smart plug with power
-metering, a motion sensor and a camera.
+## What you need
 
-## Configuration
+- Gladys Assistant 5.1.0 or later.
+- An **Apprise API** that Gladys can reach on your network, for example the
+  `caronc/apprise` Docker image (port 8000).
+- The services to notify, written as **Apprise URLs**: `tgram://bottoken/chatid`
+  for Telegram, `discord://webhook_id/webhook_token`, `mailto://user:password@gmail.com`,
+  `ntfy://topic`… The list of services and their URL syntax is on
+  [appriseit.com](https://appriseit.com/services/).
 
-1. Open the **Configuration** tab of the integration.
-2. Set the **latitude** and **longitude** the demo weather station should
-   observe (they default to Paris), and pick your temperature unit.
-   The **refresh interval** sets how often the weather station and the
-   plug's power are read: every 5 minutes by default, every minute at most.
-3. Save: the devices appear in the **Discovery** tab, ready to be added.
+Two ways to tell Gladys where to send:
 
-The **Prefer the local connection** toggle drives the demo plug: it reports
-the channel it actually uses as a badge (local or cloud), with an orange dot
-when it runs degraded (local refused, cloud fallback).
+1. **A stored configuration (recommended)**: in the web page of the Apprise
+   API, create a configuration under a key (for instance `apprise`) and give
+   each URL one or more **tags**: `alice`, `bob`, `family`, `ops`… Gladys then
+   only knows the key and the tags, never your passwords.
+2. **Apprise URLs pasted in Gladys**: sent with each notification. Simpler, but
+   the URLs (with their passwords) are stored in Gladys, masked.
 
-## Actions
+## Set up
 
-- **Test the weather provider** — performs a live request to Open-Meteo and
-  shows the current temperature and humidity under the button.
-- **Identify a device** — pick one of your devices in the list and it will
-  signal itself (the demo light "blinks" in the logs).
+Install the integration from **Integrations → Install from GitHub** with the
+address `https://github.com/guim31/gladys-apprise`, then fill in its
+Configuration screen:
 
-## Scenes
+- **Apprise API address**: the address you open the Apprise API with, port
+  included, for example `http://192.168.1.10:8000`. An API served under a path
+  behind a reverse proxy (`https://example.org/apprise`) works too.
+- **Key of the stored configuration**: `apprise` by default.
+- **Shared tags**: the services reached by the scene action and the test.
+  `family, ops` reaches the services tagged `family` **or** `ops`;
+  `family ops` (a space) those tagged `family` **and** `ops`; `all` every
+  service. Left empty: only the services without any tag.
+- **Shared Apprise URLs (instead of a configuration)**: optional. When given,
+  the scene action and the test send to these URLs and ignore the key and the
+  tags.
+- **Default notification type**: Information, Success, Warning or Failure.
+  Apprise passes it to the services that know it (colour, icon).
+- **Format messages as Markdown**: on by default. Gladys writes bold text,
+  lists and links in Markdown; Apprise converts them for each service.
+- **Behind a reverse proxy (optional)**: the Apprise API has no login of its
+  own. If you protect it with a reverse proxy, give the **user** and
+  **password** of its basic authentication, or an **extra header** such as
+  `X-Api-Key: …`.
+- **Accept a self-signed certificate**: only for an `https://` address whose
+  certificate you created yourself.
+- **Language of the integration texts**: French by default.
 
-The integration adds its own cards to the scene editor (Gladys 5.1 or
-later), under the **Integrations** category:
+Then each person who wants to receive the messages Gladys sends them opens
+**My account** (in the integration page) and fills in:
 
-- **Motion detected** (trigger) — starts the scene when a demo motion sensor
-  sees something move. Optionally pick the sensor and what moved (person,
-  animal); left empty, any detection matches. The following actions can
-  read what moved with `{{triggerEvent.data.target}}`.
-- **Identify a device** (action) — makes the chosen device signal itself.
-  It returns whether the device could signal itself, so the following
-  actions can depend on it.
+- **Your tags**: their tags in the stored configuration, for example `alice`;
+- or **Your Apprise URLs (instead of tags)**: their own services, masked.
+
+Leaving both empty means "send me nothing".
+
+Finally, use **Send a test notification** (or the button of the widget): it
+checks the API, says how many services and which tags the configuration holds,
+and sends a test notification to the shared destination.
+
+## What Gladys sends
+
+- **Messages to a person**: a scene "Send a message", the answers of Gladys,
+  its system messages. They go to the tags or URLs of that person's
+  **My account**, with the default type, as Markdown.
+- **Camera images** (scene action "Send a camera image"): sent as an
+  attachment to the services that take one (Telegram, Discord, e-mail…). If
+  the Apprise API refuses attachments (`APPRISE_ATTACH_SIZE=0`), the text
+  leaves alone with a line saying so.
+- **Scene notifications**: the action described below.
 
 ## Dashboard
 
-Add the **Demo status** widget to a dashboard: it shows the live
-temperature of the weather station and the power of the office plug, the
-connection the plug currently uses (orange when degraded) and the observed
-location. Its **Identify the light** button makes the demo light signal
-itself.
+The **Apprise** widget shows whether the API answers, how many notifications
+went out today and how many failed (and the reason of the last failure), the
+last notifications sent by scenes with their type, and a **Send a test**
+button. The messages Gladys sends to one person are counted but never listed:
+the dashboard is shared by the household.
+
+## Scenes
+
+### Triggers
+
+- **Apprise API offline**: the API stopped answering (two checks 30 seconds
+  apart). Variable: the error.
+- **Apprise API back online**: the API answers again after being offline.
+- **Apprise notification not sent**: a message could not be sent. Filters: the
+  reason (Apprise unreachable, configuration to check, a service failed,
+  notification refused) and who sent it (a Gladys message, the Apprise scene
+  action). At most once per reason every 15 minutes, so a scene answering it
+  with another notification cannot loop. Variables: reason, sender, error.
+
+### Actions
+
+**Send an Apprise notification**:
+
+- **Title**: optional.
+- **Message**: required; scene variables work.
+- **Type**: Default of the integration, Information, Success, Warning or
+  Failure.
+- **Tags**: optional; replaces the shared tags for this notification (stored
+  configuration only), for example `ops`.
+
+Outputs: **Notification sent** (yes / no) and **Error**, to continue the scene
+differently when nothing went out.
+
+### Scene ideas
+
+- The washing machine is done: "Send an Apprise notification" to `family`,
+  type Success.
+- A water leak: type Failure, tags `family, ops`, so it reaches both the
+  family chat and the e-mail of the person on duty.
+- **Apprise notification not sent** → turn a lamp red, or send the message by
+  another integration.
 
 ## Troubleshooting
 
-The integration logs everything it does: check the integration logs from the
-Gladys UI (or `docker logs` on the host) with `LOG_LEVEL=debug` for the full
-detail.
+- **"no Apprise API at this address"**: the address does not lead to the
+  Apprise API (wrong port, or a path is missing behind the reverse proxy).
+- **"no configuration stored under this key in Apprise"**: check the key in
+  the web page of the Apprise API.
+- **"no service of the configuration has these tags"**: the tags of
+  **My account** or the shared tags match no URL. Without any tag, only the
+  untagged URLs are reached; use `all` for every service.
+- **"a service did not receive it"**: Apprise reached the API of the service
+  but it refused or failed (wrong token, expired webhook…). The logs of the
+  Apprise API name the service. When several services are notified, the others
+  did receive it.
+- **"access refused"**: the reverse proxy refused the user, password or header.
+- **Debug logs**: set the `LOG_LEVEL=debug` environment variable. The logs
+  never show an Apprise URL, a password or a header value.
+
+## Limits
+
+- Send only: Apprise carries no message back to Gladys.
+- Gladys waits 5 seconds for a message to be sent. When the Apprise API does
+  not answer within 4 seconds after receiving the whole request, the message
+  counts as sent: Apprise goes on delivering it, its result is not known.
+- Delivery is as reliable as each service: Apprise reports a failure, it does
+  not retry later.
+- The type is a hint: services without colour or icon ignore it.
+- The test notification goes to the shared destination only, not to the
+  **My account** of each person.
+- Not affiliated with Apprise or its author.

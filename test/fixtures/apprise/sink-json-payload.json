@@ -1,0 +1,10 @@
+{
+  "status": 200,
+  "body": {
+    "version": "1.0",
+    "title": "T",
+    "message": "Hello **x**",
+    "attachments": [],
+    "type": "warning"
+  }
+}
