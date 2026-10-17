@@ -1,45 +1,122 @@
 // -----------------------------------------------------------------------------
-// Integration configuration.
+// Integration configuration (the `config_schema` of the manifest) and the
+// per-user "My account" values (`contact_schema`), normalized so the rest of
+// the code never deals with `undefined`, strings typed with spaces or lists
+// typed with semicolons.
 //
-// The configuration is filled in by the user in Gladys, from the `config_schema`
-// declared in `gladys-assistant-integration.json`. The SDK fetches it for you
-// (`gladys.getConfig()`) and notifies you of every change through
-// `gladys.onConfigUpdated()`.
-//
-// This module only provides defaults and normalizes the received object, so the
-// rest of the code never has to deal with `undefined`.
+// Where a notification goes (a "target"):
+// - Apprise URLs given in the form: sent as they are (POST /notify/), the
+//   tags are then meaningless;
+// - otherwise the stored configuration of apprise-api under `config_key`,
+//   with tags (POST /notify/{key}).
 // -----------------------------------------------------------------------------
 
+import { NOTIFICATION_TYPES } from './apprise/client.js';
+
+export const LANGUAGES = ['en', 'fr', 'de', 'es'];
+
 // Defaults: they MUST stay consistent with the `default` values declared in the
-// `config_schema` of the manifest.
+// `config_schema` of the manifest (test/manifest.test.js).
 export const DEFAULT_CONFIG = {
-  latitude: 48.8566, // Paris
-  longitude: 2.3522,
-  unit: 'celsius', // 'celsius' | 'fahrenheit'
-  // Seconds between two reads of the polled sensors. Gladys polls at most once
-  // a minute: slower intervals are applied by skipping polls (see
-  // createPoller in src/devices/index.js).
-  poll_frequency: 300,
-  // Reserved key (NOT in config_schema): because the manifest declares both
-  // 'local' and 'cloud' in its `transports` field, Gladys shows a standard
-  // "Prefer the local connection" toggle and sends the user's choice here.
-  // Read-only for the integration; defaults to true.
-  GLADYS_PREFER_LOCAL: true,
+  server_url: '',
+  config_key: 'apprise',
+  default_tags: '',
+  urls: '',
+  notification_type: 'info',
+  markdown: true,
+  auth_user: '',
+  auth_password: '',
+  auth_header: '',
+  allow_self_signed: false,
+  language: 'fr',
 };
+
+const trimmed = (value) => (typeof value === 'string' ? value.trim() : '');
+
+/**
+ * Apprise URLs typed in a form: one per line, or separated by spaces, commas
+ * or semicolons (no Apprise URL holds a raw space or comma… except inside
+ * its query, which Apprise itself also splits on).
+ * @param {unknown} value
+ * @returns {string[]}
+ */
+export function parseUrls(value) {
+  return trimmed(value)
+    .split(/[\s,;]+/)
+    .filter((url) => url !== '');
+}
+
+/**
+ * Tags as apprise-api reads them: "a, b" is a OR b, "a b" is a AND b. The
+ * user may type semicolons for commas; spaces around separators are tidied.
+ * @param {unknown} value
+ * @returns {string}
+ */
+export function normalizeTags(value) {
+  return trimmed(value)
+    .split(/[,;]/)
+    .map((group) => group.trim().split(/\s+/).filter(Boolean).join(' '))
+    .filter((group) => group !== '')
+    .join(', ');
+}
+
+/** A notification type of Apprise, or null (the configured default). */
+export function parseType(value) {
+  const text = trimmed(value).toLowerCase();
+  return NOTIFICATION_TYPES.includes(text) ? text : null;
+}
 
 /**
  * Merge the user config with the defaults.
- * @param {Record<string, unknown>} raw config returned by the SDK
+ * @param {Record<string, unknown>} [raw] config returned by the SDK
  */
 export function normalizeConfig(raw = {}) {
+  const config = raw ?? {};
   return {
-    ...DEFAULT_CONFIG,
-    ...raw,
-    // Force the types: config may arrive as strings from a form.
-    latitude: Number(raw.latitude ?? DEFAULT_CONFIG.latitude),
-    longitude: Number(raw.longitude ?? DEFAULT_CONFIG.longitude),
-    poll_frequency: Number(raw.poll_frequency ?? DEFAULT_CONFIG.poll_frequency),
-    // The preference is a boolean; anything but an explicit false means true.
-    GLADYS_PREFER_LOCAL: raw.GLADYS_PREFER_LOCAL !== false,
+    server_url: trimmed(config.server_url),
+    config_key: trimmed(config.config_key),
+    default_tags: normalizeTags(config.default_tags),
+    urls: parseUrls(config.urls),
+    notification_type: parseType(config.notification_type) ?? DEFAULT_CONFIG.notification_type,
+    markdown: config.markdown !== false,
+    auth_user: trimmed(config.auth_user),
+    auth_password: typeof config.auth_password === 'string' ? config.auth_password : '',
+    auth_header: trimmed(config.auth_header),
+    allow_self_signed: config.allow_self_signed === true,
+    language: LANGUAGES.includes(config.language) ? config.language : DEFAULT_CONFIG.language,
   };
+}
+
+/**
+ * Where the shared notifications go: the scene action, the test, and the
+ * messages of a user who chose "the shared destination".
+ * @param {ReturnType<typeof normalizeConfig>} config
+ */
+export function sharedTarget(config) {
+  if (config.urls.length > 0) {
+    return { urls: config.urls };
+  }
+  return { key: config.config_key, tags: config.default_tags };
+}
+
+/**
+ * The "My account" values of one user, as Gladys hands them to onSendMessage,
+ * and where that user's messages go.
+ * @param {Record<string, unknown>} [contact]
+ * @param {ReturnType<typeof normalizeConfig>} config
+ * @returns {{ optedIn: boolean, target: object|null }}
+ */
+export function contactTarget(contact, config) {
+  const values = contact ?? {};
+  const urls = parseUrls(values.urls);
+  const tags = normalizeTags(values.tags);
+  // The core skips a user who never saved "My account", but not one who
+  // saved it with every field emptied ({ tags: '' }): that user opted out.
+  if (urls.length > 0) {
+    return { optedIn: true, target: { urls } };
+  }
+  if (tags !== '') {
+    return { optedIn: true, target: { key: config.config_key, tags } };
+  }
+  return { optedIn: false, target: null };
 }

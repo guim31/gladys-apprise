@@ -1,0 +1,14 @@
+{
+  "status": 424,
+  "body": {
+    "error": "One or more notifications could not be sent",
+    "details": [
+      ["INFO", "2026-10-17 10:53:55,884", "Notifying 1 service(s)."],
+      [
+        "WARNING",
+        "2026-10-17 10:53:55,888",
+        "Failed to send JSON POST notification: Internal server error., error=500."
+      ]
+    ]
+  }
+}

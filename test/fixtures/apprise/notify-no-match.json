@@ -1,0 +1,7 @@
+{
+  "status": 424,
+  "body": {
+    "error": "One or more notification could not be sent",
+    "details": []
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "status": 200,
+  "body": {
+    "tags": ["family", "ops", "alice", "bob"],
+    "urls": [
+      {
+        "id": "a5a867ed",
+        "service_name": "JSON",
+        "enabled": true,
+        "url": "json://198.51.100.20:8080/alice?method=POST&overflow=upstream&retry=0&wait=0.5&optional=no",
+        "retry": 0,
+        "optional": false,
+        "tags": ["alice", "family"],
+        "tag_details": [
+          {
+            "name": "alice",
+            "priority": 0,
+            "token": "alice",
+            "exact": "0:alice"
+          },
+          {
+            "name": "family",
+            "priority": 0,
+            "token": "family",
+            "exact": "0:family"
+          }
+        ],
+        "template": {}
+      },
+      {
+        "id": "cc9cc498",
+        "service_name": "JSON",
+        "enabled": true,
+        "url": "json://198.51.100.20:8080/bob?method=POST&overflow=upstream&retry=0&wait=0.5&optional=no",
+        "retry": 0,
+        "optional": false,
+        "tags": ["bob", "family"],
+        "tag_details": [
+          {
+            "name": "bob",
+            "priority": 0,
+            "token": "bob",
+            "exact": "0:bob"
+          },
+          {
+            "name": "family",
+            "priority": 0,
+            "token": "family",
+            "exact": "0:family"
+          }
+        ],
+        "template": {}
+      },
+      {
+        "id": "0f1e2d3c",
+        "service_name": "JSON",
+        "enabled": true,
+        "url": "json://198.51.100.20:8080/ops?method=POST&overflow=upstream&retry=0&wait=0.5&optional=no",
+        "retry": 0,
+        "optional": false,
+        "tags": ["ops"],
+        "tag_details": [
+          {
+            "name": "ops",
+            "priority": 0,
+            "token": "ops",
+            "exact": "0:ops"
+          }
+        ],
+        "template": {}
+      }
+    ]
+  }
+}

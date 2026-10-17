@@ -1,0 +1,6 @@
+{
+  "status": 404,
+  "body": {
+    "error": "There was no configuration found"
+  }
+}

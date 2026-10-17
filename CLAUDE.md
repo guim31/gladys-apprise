@@ -16,8 +16,8 @@ its only runtime dependency. It started from the official JavaScript template.
 ```bash
 npm install
 npm test                                  # node --test, the built-in runner
-node --test test/devices.test.js          # one file
-node --test --test-name-pattern "plug"    # tests whose name matches
+node --test test/app.test.js              # one file
+node --test --test-name-pattern "widget"  # tests whose name matches
 npm run lint                              # ESLint
 npm run format:check                      # Prettier, as the CI runs it
 npm run format                            # Prettier, fix in place
@@ -32,15 +32,22 @@ pushing.
 
 ```
 index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
-src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
-gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
-test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+src/app.js                        the integration: onSendMessage, scene action, action, widget,
+                                  health checks every 5 min, online/offline/failed triggers
+src/apprise/client.js             Apprise API client (/status, /notify, /json/urls), error kinds
+src/apprise/http.js               node:http(s) transport (self-signed per request, no redirects,
+                                  late answer to a written request flagged `accepted`)
+src/apprise/message.js            Gladys message / scene fields -> body of POST /notify
+src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults), targets
+src/history.js                    server state + today's counters + last scene notifications
+src/store.js                      atomic JSON file under /data
+src/log.js                        repeated failures logged once (start, recovery)
+src/widgets.js                    content of the "apprise" widget
+src/texts.js                      texts sent to Gladys, in en/fr/de/es
+gladys-assistant-integration.json manifest: communication type, send-only, contact_schema...
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys, same sections
+test/                             node --test, against the SDK's fake Gladys and a fake Apprise
+test/fixtures/apprise/            real answers of apprise-api 2.0.1
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +77,9 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** exists in English, French, German and Spanish: action
+  messages, manifest texts, widget texts, and `docs/en.md`, `docs/fr.md`,
+  `docs/de.md`, `docs/es.md`, kept in sync (`test/i18n.test.js`).
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -197,6 +205,36 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
 - Les filtres de scène ne font qu'égalité et appartenance : un seuil reste le travail d'un capteur.
 - **Les clés de widgets, de déclencheurs et d'actions sont figées une fois publiées.**
 - `gladys_version` `>=5.1.0` dès qu'il y a widgets, déclencheurs ou actions de scène.
+
+## Apprise (propre à ce dépôt)
+
+- **Intégration `communication`, envoi seul** (`messaging.receive: false`), même charpente que
+  gladys-gotify (contrôle de santé, déclencheurs, widget, store, journaux) : lire son CLAUDE.md pour
+  les pièges du modèle de communication (« Mon compte » sans `default`, secret intact envoyé `null`,
+  utilisateur désinscrit par un profil vidé, accusé de `message.send` attendu 5 s, course à la
+  reconfiguration). Ici, « Mon compte » = tags **ou** URL Apprise ; les URL l'emportent.
+- **API vérifiée sur apprise-api 2.0.1** (`caronc/apprise:latest` du 03/10/2026, fixtures dans
+  `test/fixtures/apprise/`) : `POST /notify/` (`urls` liste ou chaîne) et `POST /notify/{key}`
+  (`tag`) → 200 ; un service en échec → **424** avec `details` non vide (les autres services ont
+  bien reçu) ; **aucun service ne correspond aux tags → 424 avec `details: []`** (distingué :
+  `NO_MATCH`) ; clé inconnue → 404 `There was no configuration found` ; URL incomprises → 400 ;
+  corps vide → 400. **Sans tag, seuls les services sans tag** sont joints ; `all` les joint tous ;
+  `"a, b"` = a OU b, `"a b"` = a ET b.
+- `GET /status` **sans `Accept: application/json` répond `OK` en text/plain** : le transport envoie
+  toujours cet en-tête. Le JSON donne `attach_lock` (vrai si `APPRISE_ATTACH_SIZE=0`). Pas de
+  version bon marché (`/details` liste tous les schémas, des centaines de Ko) : on s'en passe.
+- **Pièces jointes** : JSON `attachment: [{ base64, filename, mimetype }]` accepté. Serveur verrouillé
+  → 400 `Bad Attachment` : on renvoie sans l'image avec une ligne qui le dit (et on ne l'essaie plus
+  quand `/status` le dit). Corps vide refusé même avec une image : `📷` en corps.
+- **`GET /json/urls/{key}` renvoie les URL avec leurs secrets** (même avec `?privacy=1` en 2.0.1) :
+  seulement pour le rapport du test, on n'en garde que le nombre et les tags ; 204 = clé inconnue.
+- **Délai** : un service lent fait attendre `/notify` (le plugin `json://` abandonne vers 4 s). Gladys
+  n'attend que 5 s : la requête abandonne à 4 s, et un délai **après envoi complet de la requête**
+  (`error.accepted`, posé par `http.js` sur l'événement `finish`) compte comme envoyé — Apprise
+  continue (vérifié : le traitement Django ne s'arrête pas quand le client part).
+- Clé de configuration : `[\w-]{1,128}` vérifiée avant de la mettre dans un chemin.
+- Pas d'authentification dans apprise-api : un reverse proxy (basic ou en-tête) en option,
+  `authHeaders()` ; les identifiants restent hors de l'URL du serveur (retirés par `parseServerUrl`).
 
 ## Store
 

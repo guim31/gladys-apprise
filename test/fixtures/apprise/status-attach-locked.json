@@ -1,0 +1,19 @@
+{
+  "status": 200,
+  "body": {
+    "config_lock": false,
+    "attach_lock": true,
+    "stateful_enabled": true,
+    "stateless_enabled": true,
+    "degraded": false,
+    "max_attachments": 6,
+    "attach_size": 0,
+    "status": {
+      "persistent_storage": true,
+      "can_write_config": true,
+      "can_write_attach": false,
+      "details": ["OK"]
+    },
+    "privilege": "admin"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "status": 200,
+  "body": {
+    "error": null,
+    "details": [
+      ["INFO", "2026-10-17 10:54:11,229", "Notifying 2 service(s)."],
+      ["INFO", "2026-10-17 10:54:11,256", "Sent JSON POST notification."],
+      ["INFO", "2026-10-17 10:54:11,258", "Sent JSON POST notification."]
+    ]
+  }
+}
