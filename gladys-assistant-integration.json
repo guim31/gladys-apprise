@@ -8,8 +8,8 @@
     "de": "Gladys-Nachrichten und Szenen-Benachrichtigungen an über 100 Dienste über deine Apprise-API.",
     "es": "Mensajes de Gladys y de escenas hacia más de 100 servicios a través de su API Apprise."
   },
-  "version": "1.0.0",
-  "docker_image": "ghcr.io/guim31/gladys-apprise:1.0.0",
+  "version": "1.0.1",
+  "docker_image": "ghcr.io/guim31/gladys-apprise:1.0.1",
   "gladys_version": ">=5.1.0",
   "cover_image": "https://raw.githubusercontent.com/guim31/gladys-apprise/main/cover.png",
   "categories": ["notifications"],
